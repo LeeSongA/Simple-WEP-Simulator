@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>WEP simulation</title>
+		<script src="https://code.jquery.com/jquery-1.11.3.js"></script>
+		<script type="text/javascript" src="string.js"></script>
+		<script>
+			var sharedKey_16 = '0000000000';
+			var iv_16;
+			var crc32_16;
+			var crcTable;
+			var plainText_16;
+			var keyString_16;
+			var cipher_16;
+			var speed = 100;
+			window.onload = function() {
+				inputSharedKey();
+			}
+			function inputSharedKey(){
+				var checker = true;
+				var input;		
+				while(checker){
+					input = prompt('키를 입력해주세요(16진수 10자 입력)\n취소를 누르시면 0000000000으로 설정됩니다.', '');
+					if(input.length != 10){
+						alert('자리수가 10이 아닙니다!');
+						continue;
+					}
+					for(var i = 0; i < 10; i++){
+						if(!((input[i].toLowerCase() >= 'a' && input[i].toLowerCase() <= 'f') || (input[i] >= '0' && input[i] <= '9' ))){
+							alert('잘못 된 키입니다!');
+							break;
+						}
+						if(i == 9)
+							checker = false;
+					}
+				}
+				$('.text_sharedKey_16').html(input);
+				$('.text_sharedKey_2').html(padding(parseInt(input, 16).toString(2),40));
+				sharedKey_16 = input;
+			}
+			function send(){
+				if($('.input_message').val() == ''){
+					alert('보낼 메세지를 입력해주세요!');
+					return ;
+				}
+				$('.attr_hide').css('display','block');
+				$('.text_message').html($('.input_message').val());
+				
+				start();
+			}
+		
+			function start(){
+				
+				var delay = 0;
+				var message = $('.img_message');
+				var client = $('.img_client');
+				var client_bottom = client.offset().top + client.height();
+				message.css('display','block');
+				message.css('left',client.offset().left + client.width()/2 - message.width()/2);
+				message.css('top',client_bottom);
+				message.animate({top:client_bottom+100},10*speed,function(){ani_towardCRC(client,message);});
+			}
+			function ani_towardCRC(client, message){
+				message.animate({left:client.offset().left-200},10*speed,function(){ani_passCRC(message);});
+			}
+			function ani_passCRC(message){
+				var message_bottom = message.offset().top + message.height();
+				var message_center = message.offset().left + message.width()/2;
+				var box = $('.box_crc');
+				box.css('display', 'block');
+				box.css('top', message_bottom);
+				box.css('left', message_center - box.width()/2 -10);
+				message.animate({top:message_bottom+box.height()+message.height()/2},15*speed,function(){ani_withCRC(message)});
+			}
+			function ani_withCRC(message){
+				var message_bottom = message.offset().top + message.height();
+				var message_center = message.offset().left + message.width()/2;
+				var crc = $('.img_crc');
+				crc.css('display', 'block');
+				crc.css('top', message.offset().top);
+				crc.css('left', message_center - crc.width()/2);
+				crcTable = makeCrcTable();
+				crc32();
+				message.animate({top:crc.offset().top+crc.height()-7},15*speed,function(){ani_makeIV(message, crc)});
+			}
+			function ani_makeIV(message, crc){
+				var iv_2 = '';
+				for(var i = 0; i < 24; i++)
+					iv_2 += Math.floor(Math.random() * 2) + '';
+				iv_16 = parseInt(iv_2, 2).toString(16);
+				iv_16 = padding(iv_16,6);
+				$('.text_iv_16').html(iv_16);
+				$('.text_iv_2').html(iv_2);
+				$('.text_seed').html(iv_16 + sharedKey_16);
+			
+				var rc = $('.box_rc');
+				var client = $('.img_client');
+				var crc = $('.img_crc');
+				var key = $('.img_key');
+				var iv = $('.img_iv');
+				rc.css('display','block');
+				rc.css('top',crc.offset().top+message.height()/2+crc.height()/2-rc.height()/2-15);
+				rc.css('left',client.offset().left+client.width()/2-rc.width()/2-10);
+				iv.css('display','block');
+				iv.css('left',client.offset().left+client.width()/2-iv.width()/2);
+				iv.css('top',client.offset().top+client.height()/2);
+				key.css('display','block');
+				key.css('left',client.offset().left+client.width()/2-key.width()/2);
+				key.css('top',client.offset().top+client.height()/2+iv.height());
+				message.animate({left:rc.offset().left-message.width()},25*speed);
+				crc.animate({left:rc.offset().left-message.width()},25*speed);
+				iv.animate({top:rc.offset().top-key.height()-iv.height()},25*speed);
+				key.animate({top:rc.offset().top-key.height()},25*speed,function(){ani_passRC(rc,message,crc,iv,key)});
+			}
+			function ani_passRC(rc,message,crc,iv,key){
+				message.animate({left:rc.offset().left+rc.width()/2+10},15*speed);
+				crc.animate({left:rc.offset().left+rc.width()/2},15*speed);
+				iv.animate({top:rc.offset().top},15*speed);
+				key.animate({top:rc.offset().top+iv.height()},15*speed,function(){ani_keyString(rc,message,crc,iv,key)});
+			}
+			function ani_keyString(rc,message,crc,iv,key){
+				makeKeyString(plainText_16,iv_16 + sharedKey_16);
+				key.css('display','none');
+				crc.css('display','none');
+				iv.css('display','none');
+				var str = $('.img_str');
+				str.css('display','block');
+				str.css('left',rc.offset().left+message.width()-str.width()+5);
+				str.css('top',rc.offset().top+rc.height()/2-str.height()/2);
+				str.animate({top:rc.offset().top+rc.height()+message.height()/2},15*speed);
+				message.animate({top:rc.offset().top+rc.height()+10},15*speed,function(){ani_passXOR(rc,message,str)});
+			}
+			function ani_passXOR(rc,message,str){
+				makeCipher(plainText_16,keyString_16);
+				var iv = $('.img_iv');
+				var client = $('.img_client');
+				var xor = $('.box_xor');
+				xor.css('display','block');
+				xor.css('left',client.offset().left + client.width() + 200 - xor.width());
+				xor.css('top', rc.offset().top +rc.height()+20);
+				str.animate({left:xor.offset().left},15*speed);
+				message.animate({left:xor.offset().left+str.width()},15*speed,function(){ani_encrypt(xor,message)});
+			}
+			function ani_encrypt(xor,message){
+				var iv = $('.img_iv');
+				var client = $('.img_client');
+				var enc = $('.img_enc');
+				message.css('display','none');
+				iv.css('display','block');
+				enc.css('display','block');
+				enc.css('left',xor.offset().left+xor.width());
+				enc.css('top',xor.offset().top+xor.height());
+				iv.css('left',client.offset().left+client.width());
+				iv.css('top',client.offset().top+client.height()/2);
+				iv.animate({left:xor.offset().left+xor.width()+enc.width()/2},10*speed);
+				enc.animate({left:xor.offset().left+xor.width()+enc.width()/2},10*speed,function(){ani_withEnc(enc,iv)});
+			}
+			function ani_withEnc(enc,iv){
+				iv.animate({top:enc.offset().top-iv.height()},8*speed,function(){ani_towardTarget(enc,iv);});
+			}
+			function ani_towardTarget(enc, iv){
+				iv.animate({top:iv.offset().top+100},10*speed);
+				enc.animate({top:enc.offset().top+100},10*speed,function(){ani_towardTarget2(enc,iv);});
+			}
+			function ani_towardTarget2(enc, iv){
+				var client = $('.img_client');
+				iv.animate({left:client.offset().left+client.width()/2-iv.width()/2},10*speed);
+				enc.animate({left:client.offset().left+client.width()/2-enc.width()/2},10*speed,function(){ani_end(enc,iv,client);});
+			}
+			function ani_end(enc,iv,client){
+				var target = $('.img_target');
+				target.css('display','block');
+				target.css('left',client.offset().left);
+				target.css('top',enc.offset().top+100);
+				iv.animate({top:target.offset().top+10},8*speed);
+				enc.animate({top:target.offset().top+iv.height()+10},8*speed);
+			}
+			
+			/* refer: https://stackoverflow.com/questions/18638900/javascript-crc32 */
+			function makeCrcTable(){
+    				var c;
+    				var table = [];
+    				for(var i =0; i < 256; i++){
+        				c = i;
+        				for(var k =0; k < 8; k++)
+            					c = ((c&1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+        				table[i] = c;
+    				}
+    				return table;
+			}
+			
+			function crc32(){
+    				var crc = 0 ^ (-1);
+				var message = $('.input_message').val();
+    				for (var i = 0; i < message.length; i++ )
+        				crc = (crc >>> 8) ^ crcTable[(crc ^ message.charCodeAt(i)) & 0xFF];
+				crc32_16 = ((crc ^ (-1)) >>> 0).toString(16);
+				crc32_16 = padding(crc32_16,8);
+				plainText_16 = stringToHex(message)+crc32_16;
+				$('.text_crc32').html(crc32_16);
+				$('.text_plain').html(plainText_16);
+			}
+			/* refer: https://stackoverflow.com/questions/18638900/javascript-crc32 */
+
+			function makeKeyString(str, seed){
+				keyString_16 = '';
+				var S = [], K=[];
+				for (var i = 0; i < 256; i++){
+					S[i] = i;
+					K[i] = seed.charCodeAt(i % seed.length);
+				}
+				for (var i = 0, j = 0, temp; i < 256; i++){
+					j = (j + S[i] + K[i]) % 256;
+					temp = S[i];
+					S[i] = S[j];
+					S[j] = temp;	
+				}
+				for (var i = 0, j = 0, k = 0, temp; i < str.length / 2; i++){
+					j = (j + i) % 256;
+					k = (k + S[j]) % 256;
+					temp = S[j];
+					S[j] = S[k];
+					S[k] = temp;
+					keyString_16 += padding((S[(S[j] + S[k]) % 256]).toString(16),2);	
+				}
+				$('.text_keyStr').html(keyString_16);
+			}
+			function makeCipher(str, key){
+				cipher_16 = '';
+				for(var i = 0, temp; i < str.length / 2; i++){
+					temp = parseInt(str.substring(2*i,2*i+2),16) ^ parseInt(key.substring(2*i,2*i+2),16);
+					cipher_16 += padding(temp.toString(16),2);
+				}
+				$('.text_cipher').html(cipher_16);
+				
+				/*
+				var test = '';
+				for(var i = 0, temp; i < cipher_16.length / 2; i++){
+					temp = parseInt(cipher_16.substring(2*i,2*i+2),16) ^ parseInt(key.substring(2*i,2*i+2),16);
+					test += padding(temp.toString(16),2);
+				}
+				alert(test);
+				*/
+			}
+		</script>
+		<style>
+			body{
+				margin: 0;
+				padding: 0;
+				overflow-x: hidden;
+			}
+			.side{
+				float: left;
+				padding: 5px;
+				background: #565656;
+				color: #ffffff;
+			}
+			.side hr{
+				margin-left: 5px;
+				margin-right: 5px;
+			}
+			.main{
+				float: left;
+				padding: 5px;
+			}
+			.main .client{
+				position: absolute;
+				left: 0;
+				right: 0;
+				margin: auto;
+				text-align: center;
+			}
+			.attr_hide{
+				display: none;
+			}
+			.img_message{
+				position: absolute;
+				display: none;
+				width: 40px;
+				z-index: -1;
+			}
+			.box_crc{
+				position: absolute;
+				display: none;
+				padding: 10px;
+				border-radius: 5px;
+				background: #4587f5;
+				color: 555555;
+			}
+			.img_crc{
+				position: absolute;
+				display: none;
+				width: 40px;
+				height: 12px;
+				text-align:center;
+				border-radius: 5px;
+				background: #b0fbff;
+				color:787878;
+				font-weight: bold;
+				font-size:7px;
+			}
+			.box_rc{
+				position: absolute;
+				display: none;
+				padding: 10px;
+				border-radius: 5px;
+				background: #ff3333;
+				color: 555555;
+			}
+			.img_key{
+				position: absolute;
+				display: none;
+				width: 40px;
+				z-index: -1;
+			}
+			.img_iv{
+				position: absolute;
+				display: none;
+				width: 40px;
+				height: 12px;
+				text-align:center;
+				border-radius: 5px;
+				background: #9cffd7;
+				color:787878;
+				font-weight: bold;
+				font-size:7px;
+				z-index: -1;
+			}
+			.box_xor{
+				position: absolute;
+				display: none;
+				padding: 10px;
+				border-radius: 5px;
+				background: #555555;
+				color: ffffff;
+			}
+			.img_str{
+				position: absolute;
+				display: none;
+				width: 40px;
+				height: 20px;
+				text-align:center;
+				border-radius: 5px;
+				background: #aaaaaa;
+				color:ffffff;
+				font-weight: bold;
+				font-size:10px;
+				z-index: -1;
+			}
+			.img_enc{
+				position: absolute;
+				display: none;
+				width: 40px;
+				height: 20px;
+				text-align:center;
+				border-radius: 5px;
+				background: #000000;
+				color:#ffffff;
+				font-weight: bold;
+				font-size:10px;
+				z-index: -1;
+			}
+			.img_target{
+				position: absolute;
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="side">
+			<h3>공유키</h3>
+			<b>(16진수)</b><br>	
+			<span class="text_sharedKey_16">0000000000</span><br>
+			<b>(2진수)</b><br>
+			<span class="text_sharedKey_2">0000000000000000000000000000000000000000</span><br>
+			<hr>
+			<div class="attr_hide">
+			<h3>IV</h3>
+			<b>(16진수)</b><br>	
+			<span class="text_iv_16"></span><br>
+			<b>(2진수)</b><br>
+			<span class="text_iv_2"></span><br>
+			<hr>
+			<h3>Seed</h3>
+			<b>IV + 공유키(16진수)</b><br>	
+			<span class="text_seed"></span><br>
+			<hr>
+			<h3>메세지</h3>
+			<b>내용</b><br>	
+			<span class="text_message"></span><br>
+			<b>CRC32(16진수)</b><br>
+			<span class="text_crc32"></span><br>
+			<b>메세지 + CRC32(16진수)</b><br>
+			<span class="text_plain"></span><br>
+			<hr>
+			<h3>암호화</h3>
+			<b>키 스트링(16진수)</b><br>	
+			<span class="text_keyStr"></span><br>
+			<b>암호문(16진수)</b><br>
+			<span class="text_cipher"></span><br>
+			<hr>
+			</div>
+		</div>
+		<div class="main">
+			<div class="client">
+				<img class="img_client" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f4f1.png"><br>
+				<br>
+				<input class="input_message" type="text">
+				<input class="send_message" type="button" value="보내기" onclick="send()">
+			</div>
+			<img class="img_message" src="https://assets-cdn.github.com/images/icons/emoji/unicode/2709.png">
+			<div class="box_crc">CRC32 BOX</div>
+			<div class="img_crc">CRC32</div>
+			<div class="box_rc">RC4 BOX</div>
+			<img class="img_key" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f510.png">
+			<div class="img_iv">IV</div>
+			<div class="box_xor">XOR BOX</div>
+			<div class="img_str">K_STR</div>
+			<div class="img_enc">ENC</div>
+			<img class="img_target" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f4f1.png"><br>
+		</div>
+	</body>
+</html>
