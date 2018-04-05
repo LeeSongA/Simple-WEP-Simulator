@@ -13,21 +13,23 @@
 			var keyString_16;
 			var cipher_16;
 			var speed = 100;
-			window.onload = function() {
+			
+			$( document ).ready(function() {
+				setLocation();
 				inputSharedKey();
-			}
+			});
 			function inputSharedKey(){
 				var checker = true;
 				var input;		
 				while(checker){
-					input = prompt('í‚¤ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”(16ì§„ìˆ˜ 10ì ì…ë ¥)\nì·¨ì†Œë¥¼ ëˆ„ë¥´ì‹œë©´ 0000000000ìœ¼ë¡œ ì„¤ì •ë©ë‹ˆë‹¤.', '');
+					input = prompt('Å°¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä(16Áø¼ö 10ÀÚ ÀÔ·Â)\nÃë¼Ò¸¦ ´©¸£½Ã¸é 0000000000À¸·Î ¼³Á¤µË´Ï´Ù.', '');
 					if(input.length != 10){
-						alert('ìë¦¬ìˆ˜ê°€ 10ì´ ì•„ë‹™ë‹ˆë‹¤!');
+						alert('ÀÚ¸®¼ö°¡ 10ÀÌ ¾Æ´Õ´Ï´Ù!');
 						continue;
 					}
 					for(var i = 0; i < 10; i++){
 						if(!((input[i].toLowerCase() >= 'a' && input[i].toLowerCase() <= 'f') || (input[i] >= '0' && input[i] <= '9' ))){
-							alert('ì˜ëª» ëœ í‚¤ì…ë‹ˆë‹¤!');
+							alert('Àß¸ø µÈ Å°ÀÔ´Ï´Ù!');
 							break;
 						}
 						if(i == 9)
@@ -38,50 +40,98 @@
 				$('.text_sharedKey_2').html(padding(parseInt(input, 16).toString(2),40));
 				sharedKey_16 = input;
 			}
-			function send(){
+			function setLocation(){
+				var crc = $('.box_crc');
+				var rc = $('.box_rc');
+				var xor = $('.box_xor');
+				var target = $('.img_target');
+				var client = $('.img_client');
+				var start = $('.button_start');
+	
+				crc.css('display','block');
+				rc.css('display','block');
+				xor.css('display','block');
+			
+				crc.css('left', getCoord(client,'LEFT')-crc.width()-200);
+				crc.css('top', getCoord(client,'BOTTOM')+$('.img_message').height());
+				rc.css('left', getCoord(client,'HCENTER')-rc.width()/2-20);
+				rc.css('top', getCoord(crc,'BOTTOM')+20);
+				xor.css('left',getCoord(client,'RIGHT')+200);
+				xor.css('top', getCoord(rc,'BOTTOM')+20);
+				target.css('top',getCoord(xor,'BOTTOM')+crc.height()+rc.height()+xor.height()+200 - 30);
+				start.css('left',getCoord(client,'HCENTER')-start.width()/2);
+				start.css('top',(getCoord(client,'BOTTOM')+getCoord(target,'TOP')-start.height())/2);
+
+				crc.css('display','none');
+				rc.css('display','none');
+				xor.css('display','none');
+			}
+
+			function WEP(){
+				var start = $('.button_start');
+				var request = $('.img_request');
+				var message = $('.box_message');
+				var client = $('.img_client');
+				var target = $('.img_target');
+
+				start.css('display','none');
+				request.css('display','block');
+				request.css('top',getCoord(client,'TOP'));
+				request.animate({top:getCoord(target,'BOTTOM')-request.height()},25*speed,function(){
+					request.css('display','none');
+					message.css('display','block');
+					message.css('top',getCoord(target,'BOTTOM')+10);
+					message.css('left',getCoord(target,'HCENTER')-message.width()/2);
+				});
+			}
+			function sendChallenge(){
 				if($('.input_message').val() == ''){
-					alert('ë³´ë‚¼ ë©”ì„¸ì§€ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”!');
+					alert('º¸³¾ ¸Ş¼¼Áö¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä!');
 					return ;
 				}
 				$('.attr_hide').css('display','block');
 				$('.text_message').html($('.input_message').val());
+				$('.box_message').css('display','none');
 				
-				start();
+				var message = $('.img_message');		
+				var client = $('.img_client');		
+				var target = $('.img_target');
+
+				message.css('display','block');
+				message.css('left',getCoord(target,'HCENTER')-message.width()/2);
+				message.css('top',getCoord(target,'VCENTER')-message.height()/2);
+				message.animate({top:getCoord(client,'TOP')},25*speed,function(){ani();});
 			}
 		
-			function start(){
-				
-				var delay = 0;
+			function ani(){
+				var crc = $('.box_crc');
 				var message = $('.img_message');
 				var client = $('.img_client');
-				var client_bottom = client.offset().top + client.height();
-				message.css('display','block');
-				message.css('left',client.offset().left + client.width()/2 - message.width()/2);
-				message.css('top',client_bottom);
-				message.animate({top:client_bottom+100},10*speed,function(){ani_towardCRC(client,message);});
+
+				crc.css('display','block');
+				message.css('left',getCoord(client,'HCENTER') - message.width()/2);
+				message.css('top',getCoord(client,'BOTTOM'));
+
+				message.animate({top:getCoord(crc,'TOP')},10*speed,function(){ani_passCRC();});
 			}
-			function ani_towardCRC(client, message){
-				message.animate({left:client.offset().left-200},10*speed,function(){ani_passCRC(message);});
-			}
-			function ani_passCRC(message){
-				var message_bottom = message.offset().top + message.height();
-				var message_center = message.offset().left + message.width()/2;
-				var box = $('.box_crc');
-				box.css('display', 'block');
-				box.css('top', message_bottom);
-				box.css('left', message_center - box.width()/2 -10);
-				message.animate({top:message_bottom+box.height()+message.height()/2},15*speed,function(){ani_withCRC(message)});
+			function ani_passCRC(){
+				var message = $('.img_message');
+				var client = $('.img_client');
+				var crc = $('.box_crc');
+
+				message.animate({left:getCoord(crc,'HCENTER')-10},10*speed,function(){ani_withCRC(message);});
 			}
 			function ani_withCRC(message){
 				var message_bottom = message.offset().top + message.height();
 				var message_center = message.offset().left + message.width()/2;
 				var crc = $('.img_crc');
 				crc.css('display', 'block');
-				crc.css('top', message.offset().top);
+				crc.css('top', getCoord($('.img_message'),'TOP'));
 				crc.css('left', message_center - crc.width()/2);
 				crcTable = makeCrcTable();
 				crc32();
-				message.animate({top:crc.offset().top+crc.height()-7},15*speed,function(){ani_makeIV(message, crc)});
+				$('.img_crc').animate({top:getCoord($('.box_crc'),'BOTTOM')+20},15*speed);
+				message.animate({top:getCoord($('.box_crc'),'BOTTOM')+25},15*speed,function(){ani_makeIV(message, crc)});
 			}
 			function ani_makeIV(message, crc){
 				var iv_2 = '';
@@ -99,8 +149,6 @@
 				var key = $('.img_key');
 				var iv = $('.img_iv');
 				rc.css('display','block');
-				rc.css('top',crc.offset().top+message.height()/2+crc.height()/2-rc.height()/2-15);
-				rc.css('left',client.offset().left+client.width()/2-rc.width()/2-10);
 				iv.css('display','block');
 				iv.css('left',client.offset().left+client.width()/2-iv.width()/2);
 				iv.css('top',client.offset().top+client.height()/2);
@@ -116,35 +164,40 @@
 				message.animate({left:rc.offset().left+rc.width()/2+10},15*speed);
 				crc.animate({left:rc.offset().left+rc.width()/2},15*speed);
 				iv.animate({top:rc.offset().top},15*speed);
-				key.animate({top:rc.offset().top+iv.height()},15*speed,function(){ani_keyString(rc,message,crc,iv,key)});
+				key.animate({top:rc.offset().top+iv.height()},15*speed,function(){ani_keyString(rc,message,iv,key)});
 			}
-			function ani_keyString(rc,message,crc,iv,key){
+			function ani_keyString(rc,message, iv,key){
 				makeKeyString(plainText_16,iv_16 + sharedKey_16);
+
 				key.css('display','none');
-				crc.css('display','none');
 				iv.css('display','none');
+				$('.box_xor').css('display','block');
 				var str = $('.img_str');
 				str.css('display','block');
 				str.css('left',rc.offset().left+message.width()-str.width()+5);
 				str.css('top',rc.offset().top+rc.height()/2-str.height()/2);
+				$('.img_crc').css('left',getCoord($('.img_str'),'RIGHT'));
 				str.animate({top:rc.offset().top+rc.height()+message.height()/2},15*speed);
-				message.animate({top:rc.offset().top+rc.height()+10},15*speed,function(){ani_passXOR(rc,message,str)});
+				$('.img_crc').animate({top:getCoord($('.box_rc'),'BOTTOM')+17},15*speed);
+				message.animate({top:getCoord($('.box_rc'),'BOTTOM')+$('.img_crc').height()+10},15*speed,function(){ani_passXOR(rc,message,str)});
 			}
 			function ani_passXOR(rc,message,str){
 				makeCipher(plainText_16,keyString_16);
+
 				var iv = $('.img_iv');
 				var client = $('.img_client');
 				var xor = $('.box_xor');
 				xor.css('display','block');
-				xor.css('left',client.offset().left + client.width() + 200 - xor.width());
-				xor.css('top', rc.offset().top +rc.height()+20);
 				str.animate({left:xor.offset().left},15*speed);
+				$('.img_crc').animate({left:xor.offset().left+str.width()},15*speed);
 				message.animate({left:xor.offset().left+str.width()},15*speed,function(){ani_encrypt(xor,message)});
 			}
 			function ani_encrypt(xor,message){
+				$('.img_crc').css('display','none');
 				var iv = $('.img_iv');
 				var client = $('.img_client');
-				var enc = $('.img_enc');
+				var enc = $('.img_enc'); 
+				$('.img_str').css('display','none');
 				message.css('display','none');
 				iv.css('display','block');
 				enc.css('display','block');
@@ -168,12 +221,8 @@
 				enc.animate({left:client.offset().left+client.width()/2-enc.width()/2},10*speed,function(){ani_end(enc,iv,client);});
 			}
 			function ani_end(enc,iv,client){
-				var target = $('.img_target');
-				target.css('display','block');
-				target.css('left',client.offset().left);
-				target.css('top',enc.offset().top+100);
-				iv.animate({top:target.offset().top+10},8*speed);
-				enc.animate({top:target.offset().top+iv.height()+10},8*speed);
+				iv.animate({top:getCoord($('.img_target'),'BOTTOM')-10},8*speed);
+				enc.animate({top:getCoord($('.img_target'),'BOTTOM')},8*speed,function(){enc.css('display','none');iv.css('display','none');});
 			}
 			
 			/* refer: https://stackoverflow.com/questions/18638900/javascript-crc32 */
@@ -242,6 +291,21 @@
 				alert(test);
 				*/
 			}
+			
+			function getCoord(object, direction){
+				if(direction == 'LEFT')
+					return object.offset().left;
+				else if(direction == 'RIGHT')
+					return object.offset().left + object.width();
+				else if(direction == 'TOP')
+					return object.offset().top;
+				else if(direction == 'BOTTOM')
+					return object.offset().top + object.height();
+				else if(direction == 'HCENTER')
+					return object.offset().left + object.width()/2;
+				else if(direction == 'VCENTER')
+					return object.offset().top + object.height()/2;
+			}
 		</script>
 		<style>
 			body{
@@ -263,12 +327,35 @@
 				float: left;
 				padding: 5px;
 			}
-			.main .client{
+			.img_client{
 				position: absolute;
 				left: 0;
 				right: 0;
 				margin: auto;
-				text-align: center;
+			}
+			.img_target{
+				position: absolute;
+				left: 0;
+				right: 0;
+				margin: auto;
+			}
+			.button_start{
+				position: absolute;
+				left: 0;
+				right: 0;
+				margin: auto;
+			}
+			.img_request{
+				position: absolute;
+				left: 0;
+				right: 0;
+				margin: auto;
+				display: none;
+				z-index: -1;
+			}
+			.box_message{
+				position: absolute;
+				display: none;
 			}
 			.attr_hide{
 				display: none;
@@ -298,6 +385,7 @@
 				color:787878;
 				font-weight: bold;
 				font-size:7px;
+				z-index: -1;
 			}
 			.box_rc{
 				position: absolute;
@@ -360,54 +448,52 @@
 				font-size:10px;
 				z-index: -1;
 			}
-			.img_target{
-				position: absolute;
-				display: none;
-			}
 		</style>
 	</head>
 	<body>
 		<div class="side">
-			<h3>ê³µìœ í‚¤</h3>
-			<b>(16ì§„ìˆ˜)</b><br>	
+			<h3>°øÀ¯Å°</h3>
+			<b>(16Áø¼ö)</b><br>	
 			<span class="text_sharedKey_16">0000000000</span><br>
-			<b>(2ì§„ìˆ˜)</b><br>
+			<b>(2Áø¼ö)</b><br>
 			<span class="text_sharedKey_2">0000000000000000000000000000000000000000</span><br>
 			<hr>
 			<div class="attr_hide">
 			<h3>IV</h3>
-			<b>(16ì§„ìˆ˜)</b><br>	
+			<b>(16Áø¼ö)</b><br>	
 			<span class="text_iv_16"></span><br>
-			<b>(2ì§„ìˆ˜)</b><br>
+			<b>(2Áø¼ö)</b><br>
 			<span class="text_iv_2"></span><br>
 			<hr>
 			<h3>Seed</h3>
-			<b>IV + ê³µìœ í‚¤(16ì§„ìˆ˜)</b><br>	
+			<b>IV + °øÀ¯Å°(16Áø¼ö)</b><br>	
 			<span class="text_seed"></span><br>
 			<hr>
-			<h3>ë©”ì„¸ì§€</h3>
-			<b>ë‚´ìš©</b><br>	
+			<h3>¸Ş¼¼Áö</h3>
+			<b>³»¿ë</b><br>	
 			<span class="text_message"></span><br>
-			<b>CRC32(16ì§„ìˆ˜)</b><br>
+			<b>CRC32(16Áø¼ö)</b><br>
 			<span class="text_crc32"></span><br>
-			<b>ë©”ì„¸ì§€ + CRC32(16ì§„ìˆ˜)</b><br>
+			<b>¸Ş¼¼Áö + CRC32(16Áø¼ö)</b><br>
 			<span class="text_plain"></span><br>
 			<hr>
-			<h3>ì•”í˜¸í™”</h3>
-			<b>í‚¤ ìŠ¤íŠ¸ë§(16ì§„ìˆ˜)</b><br>	
+			<h3>¾ÏÈ£È­</h3>
+			<b>Å° ½ºÆ®¸µ(16Áø¼ö)</b><br>	
 			<span class="text_keyStr"></span><br>
-			<b>ì•”í˜¸ë¬¸(16ì§„ìˆ˜)</b><br>
+			<b>¾ÏÈ£¹®(16Áø¼ö)</b><br>
 			<span class="text_cipher"></span><br>
 			<hr>
 			</div>
 		</div>
 		<div class="main">
-			<div class="client">
-				<img class="img_client" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f4f1.png"><br>
-				<br>
+			<img class="img_client" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f4f1.png">
+			<img class="img_target" src="ap.png"><br>
+			<div class="box_message">
 				<input class="input_message" type="text">
-				<input class="send_message" type="button" value="ë³´ë‚´ê¸°" onclick="send()">
+				<input class="button_message" type="button" value="º¸³»±â" onclick="sendChallenge()">
 			</div>
+			<input class="button_start" type="button" value="½ÃÀÛ" onclick="WEP()">
+			<img class="img_request" src="req.png">
 			<img class="img_message" src="https://assets-cdn.github.com/images/icons/emoji/unicode/2709.png">
 			<div class="box_crc">CRC32 BOX</div>
 			<div class="img_crc">CRC32</div>
@@ -417,7 +503,6 @@
 			<div class="box_xor">XOR BOX</div>
 			<div class="img_str">K_STR</div>
 			<div class="img_enc">ENC</div>
-			<img class="img_target" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f4f1.png"><br>
 		</div>
 	</body>
 </html>
