@@ -37,7 +37,6 @@
 					}
 				}
 				$('.text_sharedKey_16').html(input);
-				$('.text_sharedKey_2').html(padding(parseInt(input, 16).toString(2),40));
 				sharedKey_16 = input;
 			}
 			function setLocation(){
@@ -46,6 +45,7 @@
 				var xor = $('.box_xor');
 				var target = $('.img_target');
 				var client = $('.img_client');
+				var message = $('.img_message');
 				var start = $('.button_start');
 	
 				crc.css('display','block');
@@ -53,7 +53,7 @@
 				xor.css('display','block');
 			
 				crc.css('left', getCoord(client,'LEFT')-crc.width()-200);
-				crc.css('top', getCoord(client,'BOTTOM')+$('.img_message').height());
+				crc.css('top', getCoord(client,'BOTTOM')+message.height());
 				rc.css('left', getCoord(client,'HCENTER')-rc.width()/2-20);
 				rc.css('top', getCoord(crc,'BOTTOM')+20);
 				xor.css('left',getCoord(client,'RIGHT')+200);
@@ -119,28 +119,29 @@
 				var client = $('.img_client');
 				var crc = $('.box_crc');
 
-				message.animate({left:getCoord(crc,'HCENTER')-10},10*speed,function(){ani_withCRC(message);});
+				message.animate({left:getCoord(crc,'HCENTER')-10},10*speed,function(){ani_withCRC();});
 			}
-			function ani_withCRC(message){
-				var message_bottom = message.offset().top + message.height();
-				var message_center = message.offset().left + message.width()/2;
-				var crc = $('.img_crc');
-				crc.css('display', 'block');
-				crc.css('top', getCoord($('.img_message'),'TOP'));
-				crc.css('left', message_center - crc.width()/2);
+			function ani_withCRC(){
 				crcTable = makeCrcTable();
 				crc32();
-				$('.img_crc').animate({top:getCoord($('.box_crc'),'BOTTOM')+20},15*speed);
-				message.animate({top:getCoord($('.box_crc'),'BOTTOM')+25},15*speed,function(){ani_makeIV(message, crc)});
+
+				var message = $('.img_message');
+				var crc = $('.img_crc');
+
+				crc.css('display', 'block');
+				crc.css('top', getCoord(message,'TOP'));
+				crc.css('left', getCoord(message,'HCENTER') - crc.width()/2);
+
+				crc.animate({top:getCoord($('.box_crc'),'BOTTOM')+20},15*speed);
+				message.animate({top:getCoord($('.box_crc'),'BOTTOM')+25},15*speed,function(){ani_makeIV()});
 			}
-			function ani_makeIV(message, crc){
+			function ani_makeIV(){
 				var iv_2 = '';
 				for(var i = 0; i < 24; i++)
 					iv_2 += Math.floor(Math.random() * 2) + '';
 				iv_16 = parseInt(iv_2, 2).toString(16);
 				iv_16 = padding(iv_16,6);
 				$('.text_iv_16').html(iv_16);
-				$('.text_iv_2').html(iv_2);
 				$('.text_seed').html(iv_16 + sharedKey_16);
 			
 				var rc = $('.box_rc');
@@ -148,56 +149,100 @@
 				var crc = $('.img_crc');
 				var key = $('.img_key');
 				var iv = $('.img_iv');
+				var message = $('.img_message');
+
 				rc.css('display','block');
 				iv.css('display','block');
-				iv.css('left',client.offset().left+client.width()/2-iv.width()/2);
-				iv.css('top',client.offset().top+client.height()/2);
+				iv.css('left',getCoord(client,'HCENTER')-iv.width()/2);
+				iv.css('top',getCoord(client,'VCENTER'));
 				key.css('display','block');
-				key.css('left',client.offset().left+client.width()/2-key.width()/2);
-				key.css('top',client.offset().top+client.height()/2+iv.height());
-				message.animate({left:rc.offset().left-message.width()},25*speed);
-				crc.animate({left:rc.offset().left-message.width()},25*speed);
-				iv.animate({top:rc.offset().top-key.height()-iv.height()},25*speed);
-				key.animate({top:rc.offset().top-key.height()},25*speed,function(){ani_passRC(rc,message,crc,iv,key)});
+				key.css('left',getCoord(client,'HCENTER')-key.width()/2);
+				key.css('top',getCoord(client,'VCENTER')+iv.height());
+				message.animate({left:getCoord(rc,'LEFT')-message.width()},25*speed);
+				crc.animate({left:getCoord(rc,'LEFT')-message.width()},25*speed);
+				iv.animate({top:getCoord(rc,'TOP')-key.height()-iv.height()},25*speed);
+				key.animate({top:getCoord(rc,'TOP')-key.height()},25*speed,function(){ani_passRC()});
 			}
-			function ani_passRC(rc,message,crc,iv,key){
+			function ani_passRC(){
+				var rc = $('.box_rc');
+				var client = $('.img_client');
+				var crc = $('.img_crc');
+				var key = $('.img_key');
+				var iv = $('.img_iv');
+				var message = $('.img_message');
+
 				message.animate({left:rc.offset().left+rc.width()/2+10},15*speed);
 				crc.animate({left:rc.offset().left+rc.width()/2},15*speed);
 				iv.animate({top:rc.offset().top},15*speed);
-				key.animate({top:rc.offset().top+iv.height()},15*speed,function(){ani_keyString(rc,message,iv,key)});
+				key.animate({top:rc.offset().top+iv.height()},15*speed,function(){ani_withStr()});
 			}
-			function ani_keyString(rc,message, iv,key){
+			function ani_withStr(){
 				makeKeyString(plainText_16,iv_16 + sharedKey_16);
+
+				var crc = $('.img_crc');
+				var rc = $('.box_rc');
+				var str = $('.img_str');
+				var key = $('.img_key');
+				var iv = $('.img_iv');
+				var message = $('.img_message');
 
 				key.css('display','none');
 				iv.css('display','none');
 				$('.box_xor').css('display','block');
-				var str = $('.img_str');
 				str.css('display','block');
-				str.css('left',rc.offset().left+message.width()-str.width()+5);
-				str.css('top',rc.offset().top+rc.height()/2-str.height()/2);
-				$('.img_crc').css('left',getCoord($('.img_str'),'RIGHT'));
-				str.animate({top:rc.offset().top+rc.height()+message.height()/2},15*speed);
-				$('.img_crc').animate({top:getCoord($('.box_rc'),'BOTTOM')+17},15*speed);
-				message.animate({top:getCoord($('.box_rc'),'BOTTOM')+$('.img_crc').height()+10},15*speed,function(){ani_passXOR(rc,message,str)});
+				str.css('left',getCoord(rc,'LEFT'));
+				str.css('top',getCoord(rc,'BOTTOM')-str.height());
+				crc.css('left',getCoord(str,'RIGHT'));
+
+				crc.animate({top:getCoord(rc,'BOTTOM')+17},15*speed);
+				str.animate({left:getCoord(rc,'RIGHT')},15*speed);
+				message.animate({top:getCoord(rc,'BOTTOM')+crc.height()+10},15*speed,function(){ani_towardXOR()});
 			}
-			function ani_passXOR(rc,message,str){
+			function ani_towardXOR(){
 				makeCipher(plainText_16,keyString_16);
 
+				var message = $('.img_message');
+				var rc = $('.obx_rc');
 				var iv = $('.img_iv');
 				var client = $('.img_client');
 				var xor = $('.box_xor');
+				var crc = $('.img_crc');
+				var str = $('.img_str');
+
 				xor.css('display','block');
-				str.animate({left:xor.offset().left},15*speed);
-				$('.img_crc').animate({left:xor.offset().left+str.width()},15*speed);
-				message.animate({left:xor.offset().left+str.width()},15*speed,function(){ani_encrypt(xor,message)});
+
+				str.animate({left:getCoord(xor,'LEFT')},15*speed);
+				crc.animate({left:getCoord(xor,'LEFT')-crc.width()},15*speed);
+				message.animate({left:getCoord(xor,'LEFT')-message.width()},15*speed,function(){ani_passXOR()});
 			}
-			function ani_encrypt(xor,message){
-				$('.img_crc').css('display','none');
+			function ani_passXOR(){
+				makeCipher(plainText_16,keyString_16);
+
+				var message = $('.img_message');
+				var rc = $('.obx_rc');
 				var iv = $('.img_iv');
 				var client = $('.img_client');
+				var xor = $('.box_xor');
+				var str = $('.img_str');
+				var crc = $('.img_crc');
+
+				xor.css('display','block');
+
+				crc.animate({left:getCoord(xor,'LEFT')},15*speed);
+				message.animate({left:getCoord(xor,'LEFT')},15*speed);
+				str.animate({top:getCoord(xor,'TOP')},15*speed, function(){ani_encrypt();});
+			}
+			function ani_encrypt(){
+				var iv = $('.img_iv');
 				var enc = $('.img_enc'); 
-				$('.img_str').css('display','none');
+				var client = $('.img_client');
+				var crc = $('.img_crc');
+				var str = $('.img_str');
+				var xor = $('.box_xor');
+				var message = $('.img_message');
+
+				crc.css('display','none');
+				str.css('display','none');
 				message.css('display','none');
 				iv.css('display','block');
 				enc.css('display','block');
@@ -205,26 +250,188 @@
 				enc.css('top',xor.offset().top+xor.height());
 				iv.css('left',client.offset().left+client.width());
 				iv.css('top',client.offset().top+client.height()/2);
+				
 				iv.animate({left:xor.offset().left+xor.width()+enc.width()/2},10*speed);
-				enc.animate({left:xor.offset().left+xor.width()+enc.width()/2},10*speed,function(){ani_withEnc(enc,iv)});
+				enc.animate({left:xor.offset().left+xor.width()+enc.width()/2},10*speed,function(){ani_withEnc()});
 			}
-			function ani_withEnc(enc,iv){
-				iv.animate({top:enc.offset().top-iv.height()},8*speed,function(){ani_towardTarget(enc,iv);});
+			function ani_withEnc(){
+				var iv = $('.img_iv');
+				var enc = $('.img_enc'); 
+
+				iv.animate({top:enc.offset().top-iv.height()},8*speed,function(){ani_towardTarget();});
 			}
-			function ani_towardTarget(enc, iv){
+			function ani_towardTarget(){
+				var iv = $('.img_iv');
+				var enc = $('.img_enc'); 
+
 				iv.animate({top:iv.offset().top+100},10*speed);
-				enc.animate({top:enc.offset().top+100},10*speed,function(){ani_towardTarget2(enc,iv);});
+				enc.animate({top:enc.offset().top+100},10*speed,function(){ani_towardTarget2();});
 			}
-			function ani_towardTarget2(enc, iv){
+			function ani_towardTarget2(){
+				var iv = $('.img_iv');
+				var enc = $('.img_enc'); 
 				var client = $('.img_client');
+
 				iv.animate({left:client.offset().left+client.width()/2-iv.width()/2},10*speed);
-				enc.animate({left:client.offset().left+client.width()/2-enc.width()/2},10*speed,function(){ani_end(enc,iv,client);});
+				enc.animate({left:client.offset().left+client.width()/2-enc.width()/2},10*speed,function(){ani_passTarget();});
 			}
-			function ani_end(enc,iv,client){
-				iv.animate({top:getCoord($('.img_target'),'BOTTOM')-10},8*speed);
-				enc.animate({top:getCoord($('.img_target'),'BOTTOM')},8*speed,function(){enc.css('display','none');iv.css('display','none');});
+			function ani_passTarget(){
+				var client = $('.img_client');
+				var iv = $('.img_iv');
+				var enc = $('.img_enc'); 
+				var target = $('.img_target');
+				var key = $('.img_key');  
+
+				iv.animate({top:getCoord(target,'BOTTOM')-iv.height()-key.height()+10},8*speed);
+				enc.animate({top:getCoord(target,'BOTTOM')-key.height()+10},8*speed,function(){ani_towardRC();});
 			}
+			function ani_towardRC(){
+				var iv = $('.img_iv');
+				var enc = $('.img_enc');
+				var key = $('.img_key'); 
+				var target = $('.img_target'); 
+				var crc = $('.box_crc');
+				var xor = $('.box_xor');
+				var rc = $('.box_rc');
+				var message = $('.img_message');
+
+				rc.css('left', getCoord(target,'RIGHT')+200);
+				rc.css('top', getCoord(target,'TOP')-message.height()-rc.height());
+				xor.css('left', getCoord(target,'HCENTER')-xor.width()/2-20);
+				xor.css('top', getCoord(rc,'TOP')-xor.height()-20);
+				crc.css('left',getCoord(target,'LEFT')-crc.width()-200);
+				crc.css('top', getCoord(xor,'TOP')-crc.height()-20);
+				enc.css('display','none');
+				xor.css('display','none');
+				crc.css('display','none');
+				key.css('display','block');
+				key.css('left',getCoord(target,'HCENTER')-key.width()/2);
+				key.css('top',getCoord(target,'BOTTOM')-key.height()+10);
+				iv.css('left',getCoord(target,'HCENTER')-iv.width()/2);
+
+				iv.animate({top:getCoord(rc,'TOP')},10*speed);
+				key.animate({top:getCoord(rc,'TOP')+iv.height()},10*speed,function(){ani_passRC2();});
 			
+				
+			}		
+			function ani_passRC2(){
+				var iv = $('.img_iv');
+				var key = $('.img_key'); 
+				var rc = $('.box_rc');
+
+				iv.animate({left:getCoord(rc,'LEFT')},10*speed);
+				key.animate({left:getCoord(rc,'LEFT')},10*speed,function(){ani_withStr2();});
+			}	
+			function ani_withStr2(){
+				var iv = $('.img_iv');
+				var key = $('.img_key'); 
+				var str = $('.img_str');
+				var rc = $('.box_rc');
+				var xor = $('.box_xor');
+				var enc = $('.img_enc');
+
+				iv.css('display','none');
+				key.css('display','none');
+				str.css('display','block');
+				str.css('top',getCoord(rc,'TOP'));
+				enc.css('display','block');
+				xor.css('display','block');
+			
+				str.animate({top:getCoord(rc,'TOP')-rc.height()},15*speed,function(){ani_towardXOR2();});
+			}
+			function ani_towardXOR2(){
+				var xor = $('.box_xor');
+				var enc = $('.img_enc');
+				var str = $('.img_str');
+				
+				enc.animate({top:getCoord(xor,'BOTTOM')+20},10*speed);
+				str.animate({left:getCoord(xor,'RIGHT')+20},10*speed,function(){ani_passXOR2();});
+			}
+			function ani_passXOR2(){
+				var enc = $('.img_enc');
+				var str = $('.img_str');
+				var xor = $('.box_xor');
+
+				enc.animate({top:getCoord(xor,'BOTTOM')},15*speed);
+				str.animate({left:getCoord(xor,'RIGHT')-str.width()+10},15*speed,function(){ani_withCRC2();});
+			}
+			function ani_withCRC2(){
+				decryption(cipher_16,keyString_16);
+			
+				var enc = $('.img_enc');
+				var str = $('.img_str');
+				var xor = $('.box_xor');
+				var crc = $('.img_crc');
+				var message = $('.img_message');
+
+				enc.css('display','none');
+				str.css('display','none');
+				$('.box_crc').css('display','block');
+				crc.css('display','block');
+				crc.css('left',getCoord(xor,'HCENTER')+10);
+				crc.css('top',getCoord(xor,'VCENTER'));
+				message.css('display','block');
+				message.css('left',getCoord(xor,'LEFT'));
+				message.css('top',getCoord(xor,'VCENTER'));
+
+				message.animate({top:getCoord(message,'TOP')+message.height()-20},15*speed);
+				crc.animate({top:getCoord(crc,'TOP')+crc.height()+20},15*speed,function(){ani_towardCRC();});
+				
+			}
+			function ani_towardCRC(){
+				var crc = $('.img_crc');
+				var target = $('.img_target');
+				var message = $('.img_message');
+			
+				crc.animate({top:getCoord(target,'BOTTOM')-crc.height()},10*speed);
+				message.animate({left:getCoord($('.box_crc'),'HCENTER')-message.width()/2+10},10*speed,function(){ani_passCRC2();});
+				
+			}
+			function ani_passCRC2(){
+				var crc = $('.img_crc');
+				var message = $('.img_message');
+
+				crc.css('display','none');
+
+				message.animate({top:getCoord($('.box_crc'),'TOP')},10*speed,function(){ani_towardTarget3();});
+				
+			}
+			function ani_towardTarget3(){
+				var crc = $('.img_crc');
+				var message = $('.img_message');
+				var target = $('.img_target');
+
+				crc.css('display','block');
+				crc.css('left',getCoord($('.box_crc'),'HCENTER')-crc.width()/2+10);
+				crc.css('top',getCoord($('.box_crc'),'BOTTOM')+20);
+				message.css('left',getCoord($('.box_crc'),'HCENTER')-message.width()/2+10);
+				message.css('top',getCoord($('.box_crc'),'BOTTOM')+crc.height()+13);
+
+				crc.animate({top:getCoord(target,'BOTTOM')-message.height()-crc.height()+7},10*speed);
+				message.animate({top:getCoord(target,'BOTTOM')-message.height()},10*speed,function(){ani_towardTarget4();});
+			}
+			function ani_towardTarget4(){
+				var crc = $('.img_crc');
+				var message = $('.img_message');
+				var target = $('.img_target');
+
+				crc.animate({left:getCoord(target,'LEFT')},10*speed);
+				message.animate({left:getCoord(target,'LEFT')},10*speed,function(){ani_end();});
+			}
+			function ani_end(){
+				$('.text_checkSum').html('OK!');
+	
+				var crc = $('.img_crc');
+				var message = $('.img_message');
+				var xor = $('.box_xor');
+				var rc = $('.box_rc');
+
+				crc.css('display','none');
+				message.css('display','none');
+				$('.box_crc').css('display','none');
+				xor.css('display','none');
+				rc.css('display','none');
+			}
 			/* refer: https://stackoverflow.com/questions/18638900/javascript-crc32 */
 			function makeCrcTable(){
     				var c;
@@ -281,15 +488,15 @@
 					cipher_16 += padding(temp.toString(16),2);
 				}
 				$('.text_cipher').html(cipher_16);
-				
-				/*
-				var test = '';
-				for(var i = 0, temp; i < cipher_16.length / 2; i++){
-					temp = parseInt(cipher_16.substring(2*i,2*i+2),16) ^ parseInt(key.substring(2*i,2*i+2),16);
-					test += padding(temp.toString(16),2);
+
+			}
+			function decryption(str, key){
+				decryption_16 = '';
+				for(var i = 0, temp; i < str.length / 2; i++){
+					temp = parseInt(str.substring(2*i,2*i+2),16) ^ parseInt(key.substring(2*i,2*i+2),16);
+					decryption_16 += padding(temp.toString(16),2);
 				}
-				alert(test);
-				*/
+				$('.text_decrypt').html(hexToString(decryption_16.substring(0,str.length-8)));
 			}
 			
 			function getCoord(object, direction){
@@ -316,6 +523,7 @@
 			.side{
 				float: left;
 				padding: 5px;
+				width: 200px;
 				background: #565656;
 				color: #ffffff;
 			}
@@ -452,20 +660,12 @@
 	</head>
 	<body>
 		<div class="side">
-			<h3>공유키</h3>
-			<b>(16진수)</b><br>	
+			<h3>WEP키</h3>
+			<b>공유키(16진수)</b><br>	
 			<span class="text_sharedKey_16">0000000000</span><br>
-			<b>(2진수)</b><br>
-			<span class="text_sharedKey_2">0000000000000000000000000000000000000000</span><br>
-			<hr>
 			<div class="attr_hide">
-			<h3>IV</h3>
-			<b>(16진수)</b><br>	
+			<b>IV(16진수)</b><br>	
 			<span class="text_iv_16"></span><br>
-			<b>(2진수)</b><br>
-			<span class="text_iv_2"></span><br>
-			<hr>
-			<h3>Seed</h3>
 			<b>IV + 공유키(16진수)</b><br>	
 			<span class="text_seed"></span><br>
 			<hr>
@@ -482,6 +682,12 @@
 			<span class="text_keyStr"></span><br>
 			<b>암호문(16진수)</b><br>
 			<span class="text_cipher"></span><br>
+			<hr>
+			<h3>복호화</h3>
+			<b>메세지</b><br>	
+			<span class="text_decrypt"></span><br>
+			<b>Check Sum 확인</b><br>
+			<span class="text_checkSum"></span><br>
 			<hr>
 			</div>
 		</div>
