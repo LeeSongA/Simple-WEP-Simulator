@@ -2,9 +2,12 @@
 <html>
 	<head>
 		<title>WEP simulation</title>
+        	<link rel="stylesheet" type="text/css" href="Custom-Range-Slider-CSS-jQuery.css">
+        	<link rel="stylesheet" type="text/css" href="style.css?ver=0.1">
 		<script src="https://code.jquery.com/jquery-1.11.3.js"></script>
 		<script type="text/javascript" src="init.js?ver=0.1"></script>
 		<script type="text/javascript" src="string.js?ver=0.1"></script>
+		<script type="text/javascript" src="wep.js?ver=0.1"></script>
 		<script>
 			var sharedKey_16 = '0000000000';
 			var iv_16;
@@ -69,6 +72,30 @@
 					start.attr('onclick', 'ani()');
 				});
 			}
+
+			function setSlider(){
+				
+				var rangeSlider = function(){
+				var slider = $('.range-slider'),
+				range = $('.range-slider__range'),
+				value = $('.range-slider__value');
+    
+				slider.each(function(){
+
+					value.each(function(){
+						var value = $(this).prev().attr('value');
+						$(this).html(value);
+					});
+
+					range.on('input', function(){
+		      				$(this).next(value).html(this.value);
+						speed = this.value;
+						});
+					});
+				};
+
+				rangeSlider();
+			}
 		
 			function ani(){
 				var start = $('.button_start');
@@ -92,7 +119,7 @@
 			}
 			function ani_withCRC(){
 				crcTable = makeCrcTable();
-				crc32();
+				makeCheckSum();
 
 				var message = $('.img_message');
 				var crc = $('.img_crc');
@@ -423,73 +450,7 @@
 					start.attr('onclick', 'window.location.reload()');
 				});
 			}
-			/* refer: https://stackoverflow.com/questions/18638900/javascript-crc32 */
-			function makeCrcTable(){
-    				var c;
-    				var table = [];
-    				for(var i =0; i < 256; i++){
-        				c = i;
-        				for(var k =0; k < 8; k++)
-            					c = ((c&1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
-        				table[i] = c;
-    				}
-    				return table;
-			}
 			
-			function crc32(){
-    				var crc = 0 ^ (-1);
-				var message = $('.input_message').val();
-    				for (var i = 0; i < message.length; i++ )
-        				crc = (crc >>> 8) ^ crcTable[(crc ^ message.charCodeAt(i)) & 0xFF];
-				crc32_16 = ((crc ^ (-1)) >>> 0).toString(16);
-				crc32_16 = padding(crc32_16,8);
-				plainText_16 = stringToHex(message)+crc32_16;
-				$('.text_crc32').html(crc32_16);
-				$('.text_plain').html(plainText_16);
-			}
-			/* refer: https://stackoverflow.com/questions/18638900/javascript-crc32 */
-
-			function makeKeyString(str, seed){
-				keyString_16 = '';
-				var S = [], K=[];
-				for (var i = 0; i < 256; i++){
-					S[i] = i;
-					K[i] = seed.charCodeAt(i % seed.length);
-				}
-				for (var i = 0, j = 0, temp; i < 256; i++){
-					j = (j + S[i] + K[i]) % 256;
-					temp = S[i];
-					S[i] = S[j];
-					S[j] = temp;	
-				}
-				for (var i = 0, j = 0, k = 0, temp; i < str.length / 2; i++){
-					j = (j + i) % 256;
-					k = (k + S[j]) % 256;
-					temp = S[j];
-					S[j] = S[k];
-					S[k] = temp;
-					keyString_16 += padding((S[(S[j] + S[k]) % 256]).toString(16),2);	
-				}
-				$('.text_keyStr').html(keyString_16);
-			}
-			function makeCipher(str, key){
-				cipher_16 = '';
-				for(var i = 0, temp; i < str.length / 2; i++){
-					temp = parseInt(str.substring(2*i,2*i+2),16) ^ parseInt(key.substring(2*i,2*i+2),16);
-					cipher_16 += padding(temp.toString(16),2);
-				}
-				$('.text_cipher').html(cipher_16);
-
-			}
-			function decryption(str, key){
-				decryption_16 = '';
-				for(var i = 0, temp; i < str.length / 2; i++){
-					temp = parseInt(str.substring(2*i,2*i+2),16) ^ parseInt(key.substring(2*i,2*i+2),16);
-					decryption_16 += padding(temp.toString(16),2);
-				}
-				$('.text_decrypt').html(hexToString(decryption_16.substring(0,str.length-8)));
-			}
-
 			function getCoord(object, direction){
 				if(direction == 'LEFT')
 					return object.offset().left;
@@ -505,159 +466,6 @@
 					return object.offset().top + object.height()/2;
 			}
 		</script>
-		<style>
-			body{
-				margin: 0;
-				padding: 0;
-				overflow-x: hidden;
-			}
-			.side{
-				float: left;
-				padding: 5px;
-				width: 200px;
-				background: #565656;
-				color: #ffffff;
-			}
-			.side hr{
-				margin-left: 5px;
-				margin-right: 5px;
-			}
-			.main{
-				float: left;
-				padding: 5px;
-			}
-			.img_client{
-				position: absolute;
-				left: 0;
-				right: 0;
-				margin: auto;
-			}
-			.img_target{
-				position: absolute;
-				left: 0;
-				right: 0;
-				margin: auto;
-				display: none;
-			}
-			.button_start{
-				position: absolute;
-				left: 0;
-				right: 0;
-				margin: auto;
-				display: none;
-			}
-			.img_request{
-				position: absolute;
-				left: 0;
-				right: 0;
-				margin: auto;
-				display: none;
-				z-index: -1;
-			}
-			.box_message{
-				position: absolute;
-				display: none;
-			}
-			.attr_hide{
-				display: none;
-			}
-			.img_message{
-				position: absolute;
-				display: none;
-				width: 40px;
-				z-index: -1;
-			}
-			.box_crc{
-				position: absolute;
-				display: none;
-				padding: 10px;
-				border-radius: 5px;
-				background: #4587f5;
-				color: 555555;
-			}
-			.img_crc{
-				position: absolute;
-				display: none;
-				width: 40px;
-				height: 12px;
-				text-align:center;
-				border-radius: 5px;
-				background: #b0fbff;
-				color:787878;
-				font-weight: bold;
-				font-size:7px;
-				z-index: -1;
-			}
-			.box_rc{
-				position: absolute;
-				display: none;
-				padding: 10px;
-				border-radius: 5px;
-				background: #ff3333;
-				color: 555555;
-			}
-			.img_key{
-				position: absolute;
-				display: none;
-				width: 40px;
-				z-index: -1;
-			}
-			.img_iv{
-				position: absolute;
-				display: none;
-				width: 40px;
-				height: 12px;
-				text-align:center;
-				border-radius: 5px;
-				background: #9cffd7;
-				color:787878;
-				font-weight: bold;
-				font-size:7px;
-				z-index: -1;
-			}
-			.box_xor{
-				position: absolute;
-				display: none;
-				padding: 10px;
-				border-radius: 5px;
-				background: #555555;
-				color: ffffff;
-			}
-			.img_str{
-				position: absolute;
-				display: none;
-				width: 40px;
-				height: 20px;
-				text-align:center;
-				border-radius: 5px;
-				background: #aaaaaa;
-				color:ffffff;
-				font-weight: bold;
-				font-size:10px;
-				z-index: -1;
-			}
-			.img_enc{
-				position: absolute;
-				display: none;
-				width: 40px;
-				height: 20px;
-				text-align:center;
-				border-radius: 5px;
-				background: #000000;
-				color:#ffffff;
-				font-weight: bold;
-				font-size:10px;
-				z-index: -1;
-			}
-			.img_ok{
-				position: absolute;
-				left: 0;
-				right: 0;
-				margin: auto;
-				display: none;
-				z-index: -1;
-			}
-		</style>
 	</head>
 	<body>
 		<div class="side">
@@ -665,32 +473,39 @@
 			<b>공유키(16진수)</b><br>	
 			<span class="text_sharedKey_16">0000000000</span><br>
 			<div class="attr_hide">
-			<b>IV(16진수)</b><br>	
-			<span class="text_iv_16"></span><br>
-			<b>IV + 공유키(16진수)</b><br>	
-			<span class="text_seed"></span><br>
-			<hr>
-			<h3>메세지</h3>
-			<b>내용</b><br>	
-			<span class="text_message"></span><br>
-			<b>CRC32(16진수)</b><br>
-			<span class="text_crc32"></span><br>
-			<b>메세지 + CRC32(16진수)</b><br>
-			<span class="text_plain"></span><br>
-			<hr>
-			<h3>암호화</h3>
-			<b>키 스트링(16진수)</b><br>	
-			<span class="text_keyStr"></span><br>
-			<b>암호문(16진수)</b><br>
-			<span class="text_cipher"></span><br>
-			<hr>
-			<h3>복호화</h3>
-			<b>메세지</b><br>	
-			<span class="text_decrypt"></span><br>
-			<b>Check Sum 확인</b><br>
-			<span class="text_checkSum"></span><br>
-			<hr>
+				<b>IV(16진수)</b><br>	
+				<span class="text_iv_16"></span><br>
+				<b>IV + 공유키(16진수)</b><br>	
+				<span class="text_seed"></span><br>
+				<hr>
+				<h3>메세지</h3>
+				<b>내용</b><br>	
+				<span class="text_message"></span><br>
+				<b>CRC32(16진수)</b><br>
+				<span class="text_crc32"></span><br>
+				<b>메세지 + CRC32(16진수)</b><br>
+				<span class="text_plain"></span><br>
+				<hr>
+				<h3>암호화</h3>
+				<b>키 스트링(16진수)</b><br>	
+				<span class="text_keyStr"></span><br>
+				<b>암호문(16진수)</b><br>
+				<span class="text_cipher"></span><br>
+				<hr>
+				<h3>복호화</h3>
+				<b>메세지</b><br>	
+				<span class="text_decrypt"></span><br>
+				<b>Check Sum 확인</b><br>
+				<span class="text_checkSum"></span><br>
 			</div>
+			<hr>
+			<div class= "range-slider">
+				<b>속도:&nbsp;</b>
+  				<input class="range-slider__range" type="range" value="100" min="20" max="200" step="20">
+				<br>
+				<span><br>(속도는 다음 애니메이션 구간부터 적용이 됩니다)</span>
+			</div>
+			<script>setSlider();</script>
 		</div>
 		<div class="main">
 			<img class="img_client" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f4f1.png">

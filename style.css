@@ -1,0 +1,158 @@
+body{
+	margin: 0;
+	padding: 0;
+	overflow-x: hidden;
+}
+.side{
+	float: left;
+	padding: 5px;
+	width: 200px;
+	background: #565656;
+	color: #ffffff;
+}
+.side hr{
+	margin-left: 5px;
+	margin-right: 5px;
+}
+.side span{	
+	width: 190px;		
+	overflow-x: auto;		
+	display: inline-block;
+}
+.main{
+	float: left;
+	padding: 5px;
+}
+.img_client{
+	position: absolute;
+	left: 0;
+	right: 0;
+	margin: auto;
+}
+.img_target{
+	position: absolute;
+	left: 0;
+	right: 0;
+	margin: auto;
+	display: none;
+}
+.button_start{
+	position: absolute;
+	left: 0;
+	right: 0;
+	margin: auto;
+	display: none;
+}
+.img_request{
+	position: absolute;
+	left: 0;
+	right: 0;
+	margin: auto;
+	display: none;
+	z-index: -1;
+}
+.box_message{
+	position: absolute;
+	display: none;
+}
+.attr_hide{
+	display: none;
+}
+.img_message{
+	position: absolute;
+	display: none;
+	width: 40px;
+	z-index: -1;
+}
+.box_crc{
+	position: absolute;
+	display: none;
+	padding: 10px;
+	border-radius: 5px;
+	background: #4587f5;
+	color: 555555;
+}
+.img_crc{
+	position: absolute;
+	display: none;
+	width: 40px;
+	height: 12px;
+	text-align:center;
+	border-radius: 5px;
+	background: #b0fbff;
+	color:787878;
+	font-weight: bold;
+	font-size:7px;
+	z-index: -1;
+}
+.box_rc{
+	position: absolute;
+	display: none;
+	padding: 10px;
+	border-radius: 5px;
+	background: #ff3333;
+	color: 555555;
+}
+.img_key{
+	position: absolute;
+	display: none;
+	width: 40px;
+	z-index: -1;
+}
+.img_iv{
+	position: absolute;
+	display: none;
+	width: 40px;
+	height: 12px;
+	text-align:center;
+	border-radius: 5px;
+	background: #9cffd7;
+	color:787878;
+	font-weight: bold;
+	font-size:7px;
+	z-index: -1;
+}
+.box_xor{
+	position: absolute;
+	display: none;
+	padding: 10px;
+	border-radius: 5px;
+	background: #555555;
+	color: ffffff;
+}
+.img_str{
+	position: absolute;
+	display: none;
+	width: 40px;
+	height: 20px;
+	text-align:center;
+	border-radius: 5px;
+	background: #aaaaaa;
+	color:ffffff;
+	font-weight: bold;
+	font-size:10px;
+	z-index: -1;
+}
+.img_enc{
+	position: absolute;
+	display: none;
+	width: 40px;
+	height: 20px;
+	text-align:center;
+	border-radius: 5px;
+	background: #000000;
+	color:#ffffff;
+	font-weight: bold;
+	font-size:10px;
+	z-index: -1;
+}
+.img_ok{
+	position: absolute;
+	left: 0;
+	right: 0;
+	margin: auto;
+	display: none;
+	z-index: -1;
+}
+.range-slider{ margin-top: 0; }	
+.range-slider span{ font-size: 8pt; }
