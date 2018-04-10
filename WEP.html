@@ -8,6 +8,8 @@
 		<script type="text/javascript" src="init.js?ver=0.1"></script>
 		<script type="text/javascript" src="string.js?ver=0.1"></script>
 		<script type="text/javascript" src="wep.js?ver=0.1"></script>
+		<script type="text/javascript" src="utility.js?ver=0.1"></script>
+		<script type="text/javascript" src="slider.js?ver=0.1"></script>
 		<script>
 			var sharedKey_16 = '0000000000';
 			var iv_16;
@@ -73,29 +75,7 @@
 				});
 			}
 
-			function setSlider(){
-				
-				var rangeSlider = function(){
-				var slider = $('.range-slider'),
-				range = $('.range-slider__range'),
-				value = $('.range-slider__value');
-    
-				slider.each(function(){
-
-					value.each(function(){
-						var value = $(this).prev().attr('value');
-						$(this).html(value);
-					});
-
-					range.on('input', function(){
-		      				$(this).next(value).html(this.value);
-						speed = this.value;
-						});
-					});
-				};
-
-				rangeSlider();
-			}
+			
 		
 			function ani(){
 				var start = $('.button_start');
@@ -168,10 +148,10 @@
 				var iv = $('.img_iv');
 				var message = $('.img_message');
 
-				message.animate({left:rc.offset().left+rc.width()/2+10},15*speed);
-				crc.animate({left:rc.offset().left+rc.width()/2},15*speed);
-				iv.animate({top:rc.offset().top},15*speed);
-				key.animate({top:rc.offset().top+iv.height()},15*speed,function(){ani_withStr()});
+				message.animate({left:getCoord(rc,'LEFT')+rc.width()/2+10},15*speed);
+				crc.animate({left:getCoord(rc,'LEFT')+rc.width()/2},15*speed);
+				iv.animate({top:getCoord(rc,'TOP')},15*speed);
+				key.animate({top:getCoord(rc,'TOP')+iv.height()},15*speed,function(){ani_withStr()});
 			}
 			function ani_withStr(){
 				makeKeyString(plainText_16,iv_16 + sharedKey_16);
@@ -243,34 +223,34 @@
 				message.css('display','none');
 				iv.css('display','block');
 				enc.css('display','block');
-				enc.css('left',xor.offset().left+xor.width());
-				enc.css('top',xor.offset().top+xor.height());
-				iv.css('left',client.offset().left+client.width());
-				iv.css('top',client.offset().top+client.height()/2);
+				enc.css('left',getCoord(xor,'RIGHT'));
+				enc.css('top',getCoord(xor,'BOTTOM'));
+				iv.css('left',getCoord(client,'RIGHT'));
+				iv.css('top',getCoord(client,'VCENTER'));
 				
-				iv.animate({left:xor.offset().left+xor.width()+enc.width()/2},10*speed);
-				enc.animate({left:xor.offset().left+xor.width()+enc.width()/2},10*speed,function(){ani_withEnc()});
+				iv.animate({left:getCoord(xor,'RIGHT')+enc.width()/2},10*speed);
+				enc.animate({left:getCoord(xor,'RIGHT')+enc.width()/2},10*speed,function(){ani_withEnc()});
 			}
 			function ani_withEnc(){
 				var iv = $('.img_iv');
 				var enc = $('.img_enc'); 
 
-				iv.animate({top:enc.offset().top-iv.height()},8*speed,function(){ani_towardTarget();});
+				iv.animate({top:getCoord(enc,'TOP')-iv.height()},8*speed,function(){ani_towardTarget();});
 			}
 			function ani_towardTarget(){
 				var iv = $('.img_iv');
 				var enc = $('.img_enc'); 
 
-				iv.animate({top:iv.offset().top+100},10*speed);
-				enc.animate({top:enc.offset().top+100},10*speed,function(){ani_towardTarget2();});
+				iv.animate({top:getCoord(iv,'TOP')+100},10*speed);
+				enc.animate({top:getCoord(enc,'TOP')+100},10*speed,function(){ani_towardTarget2();});
 			}
 			function ani_towardTarget2(){
 				var iv = $('.img_iv');
 				var enc = $('.img_enc'); 
 				var client = $('.img_client');
 
-				iv.animate({left:client.offset().left+client.width()/2-iv.width()/2},10*speed);
-				enc.animate({left:client.offset().left+client.width()/2-enc.width()/2},10*speed,function(){ani_passTarget();});
+				iv.animate({left:getCoord(client,'HCENTER')-iv.width()/2},10*speed);
+				enc.animate({left:getCoord(client,'HCENTER')-enc.width()/2},10*speed,function(){ani_passTarget();});
 			}
 			function ani_passTarget(){
 				var client = $('.img_client');
@@ -449,21 +429,6 @@
 					start.css('left',getCoord(client,'HCENTER')-start.width()/2);
 					start.attr('onclick', 'window.location.reload()');
 				});
-			}
-			
-			function getCoord(object, direction){
-				if(direction == 'LEFT')
-					return object.offset().left;
-				else if(direction == 'RIGHT')
-					return object.offset().left + object.width();
-				else if(direction == 'TOP')
-					return object.offset().top;
-				else if(direction == 'BOTTOM')
-					return object.offset().top + object.height();
-				else if(direction == 'HCENTER')
-					return object.offset().left + object.width()/2;
-				else if(direction == 'VCENTER')
-					return object.offset().top + object.height()/2;
 			}
 		</script>
 	</head>
