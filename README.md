@@ -16,4 +16,3 @@ https://www.jqueryscript.net/form/Custom-Range-Slider-CSS-jQuery.html
 ```
 https://stackoverflow.com/questions/18638900/javascript-crc32
 ```
-# Embedded
